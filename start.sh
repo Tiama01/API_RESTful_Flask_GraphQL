@@ -165,7 +165,11 @@ start_graphql() {
 # Fonction pour démarrer Prometheus
 start_prometheus() {
     if ! command -v prometheus &> /dev/null; then
-        log_warning "Prometheus n'est pas installé. Installation recommandée: brew install prometheus (macOS) ou apt-get install prometheus (Linux)"
+        log_warning "Prometheus n'est pas installe."
+        log_info "Options d'installation:"
+        log_info "   - Installation manuelle: Consultez PROMETHEUS_INSTALL.md"
+        log_info "   - Via Docker: docker run -d -p 9090:9090 prom/prometheus"
+        log_info "   - Note: Prometheus est optionnel, les metriques sont disponibles sur /metrics"
         return 1
     fi
     

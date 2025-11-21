@@ -108,9 +108,15 @@ Le serveur GraphQL sera accessible sur `http://localhost:8000/graphql`
 
 #### 3. Démarrer Prometheus (optionnel)
 
+**Si Prometheus est installé :**
 ```bash
 prometheus --config.file=prometheus.yml
 ```
+
+**Si Prometheus n'est pas installé :**
+- Consultez [PROMETHEUS_INSTALL.md](PROMETHEUS_INSTALL.md) pour les instructions d'installation
+- Ou utilisez Docker : `docker run -d -p 9090:9090 -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus`
+- Note : Prometheus est optionnel, les métriques sont toujours disponibles sur `http://localhost:5000/metrics`
 
 Prometheus sera accessible sur `http://localhost:9090`
 

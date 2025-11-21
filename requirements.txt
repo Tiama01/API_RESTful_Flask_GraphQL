@@ -13,6 +13,11 @@ SQLAlchemy>=2.0.25
 # Kafka (optionnel pour l'intégration)
 kafka-python==2.0.2
 
+# Bases de données (optionnel pour Pentaho/WSO2)
+# Décommenter si vous utilisez MySQL ou PostgreSQL
+# pymysql==1.1.0  # Pour MySQL
+# psycopg2-binary==2.9.9  # Pour PostgreSQL
+
 # Utilitaires
 python-dotenv==1.0.0
 

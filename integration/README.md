@@ -21,28 +21,67 @@ python integration/kafka_consumer.py test
 - `KAFKA_TOPIC`: Topic Kafka (défaut: articles-sync)
 - `REST_API_URL`: URL de l'API REST Flask
 
-### 2. `pentaho_example.ktr`
-Fichier de transformation Pentaho Data Integration (PDI) qui :
-1. Lit les articles depuis la base de données source (Base A)
-2. Transforme les données au format JSON
-3. Appelle l'API REST Flask pour créer/mettre à jour les articles
-4. Écrit les articles synchronisés dans la base de destination (Base B)
+### 2. `pentaho_example.ktr` et `pentaho_sync.py`
 
-**Utilisation:**
-- Ouvrir le fichier dans Pentaho Data Integration
-- Configurer les connexions aux bases de données
-- Exécuter la transformation
+**pentaho_example.ktr** : Fichier de configuration Pentaho Data Integration (PDI)
+- Template XML pour Pentaho PDI
+- Nécessite Pentaho Data Integration installé séparément
+- Ouvrir dans Pentaho PDI, configurer les connexions, exécuter
 
-### 3. `wso2_example.xml`
-Configuration WSO2 Enterprise Integrator (EI) qui définit une API Proxy pour :
-1. Récupérer les données depuis la base source
-2. Appeler l'API REST Flask
-3. Sauvegarder dans la base de destination
+**pentaho_sync.py** : Script Python fonctionnel qui simule Pentaho PDI
+- Alternative fonctionnelle qui reproduit le comportement de Pentaho
+- Exécutable directement sans installation de Pentaho
+- Supporte SQLite, MySQL et PostgreSQL
 
-**Utilisation:**
-- Déployer le fichier dans WSO2 EI
-- Configurer les Data Sources (SourceDB et DestinationDB)
-- Appeler l'API via `/articles-sync`
+**Utilisation du script Python:**
+```bash
+# Utilisation basique (SQLite)
+python integration/pentaho_sync.py
+
+# Avec variables d'environnement
+export PENTAHO_SOURCE_DB=source.db
+export PENTAHO_DESTINATION_DB=dest.db
+export REST_API_URL=http://localhost:5000
+python integration/pentaho_sync.py
+
+# Pour MySQL/PostgreSQL, configurer les variables d'environnement
+export SOURCE_DB_TYPE=mysql
+export MYSQL_HOST=localhost
+export MYSQL_PORT=3306
+export MYSQL_USER=root
+export MYSQL_PASSWORD=password
+export MYSQL_DATABASE=source_db
+python integration/pentaho_sync.py
+```
+
+### 3. `wso2_example.xml` et `wso2_sync.py`
+
+**wso2_example.xml** : Configuration WSO2 Enterprise Integrator (EI)
+- Template XML pour WSO2 EI
+- Nécessite WSO2 Enterprise Integrator installé séparément
+- Déployer dans WSO2 EI, configurer les Data Sources, appeler l'API
+
+**wso2_sync.py** : Script Python fonctionnel qui simule WSO2 EI
+- Alternative fonctionnelle qui reproduit le comportement de WSO2
+- Crée un serveur Flask qui agit comme un API Proxy
+- Supporte SQLite, MySQL et PostgreSQL
+
+**Utilisation du script Python:**
+```bash
+# Démarrer le proxy WSO2 (simulation)
+python integration/wso2_sync.py
+
+# Le proxy sera accessible sur http://localhost:8280/articles-sync
+
+# Appeler l'API de synchronisation
+curl http://localhost:8280/articles-sync
+
+# Avec paramètre de dernière synchronisation
+curl "http://localhost:8280/articles-sync?lastSyncTime=2024-01-01T00:00:00"
+
+# Health check
+curl http://localhost:8280/health
+```
 
 ### 4. `sync_script.py`
 Script Python générique de synchronisation qui peut être utilisé comme alternative aux outils ci-dessus.
@@ -77,5 +116,12 @@ Base A (Source) → [Kafka/Pentaho/WSO2/Script] → API REST Flask → Base B (D
 
 - Tous les outils nécessitent que l'API REST Flask soit démarrée et accessible
 - Les configurations de connexion aux bases de données doivent être adaptées selon votre environnement
-- Les exemples Pentaho et WSO2 sont des templates à personnaliser selon vos besoins
+- **Kafka** : Fonctionnel avec `kafka_consumer.py` (nécessite Kafka installé)
+- **Pentaho** : Deux options disponibles :
+  - `pentaho_example.ktr` : Template pour Pentaho PDI (nécessite Pentaho installé)
+  - `pentaho_sync.py` : Script Python fonctionnel (alternative sans Pentaho)
+- **WSO2** : Deux options disponibles :
+  - `wso2_example.xml` : Template pour WSO2 EI (nécessite WSO2 installé)
+  - `wso2_sync.py` : Script Python fonctionnel (alternative sans WSO2)
+- **sync_script.py** : Alternative générique Python pour la synchronisation
 

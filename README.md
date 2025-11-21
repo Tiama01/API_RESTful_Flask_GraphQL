@@ -137,7 +137,10 @@ kafka-server-start.sh config/server.properties
 python integration/kafka_consumer.py
 ```
 
-**Guide complet d'installation Kafka** : Consultez [KAFKA_SETUP.md](KAFKA_SETUP.md) pour les instructions détaillées d'installation et de configuration.
+**Guides d'installation :**
+- **Kafka** : Consultez [KAFKA_SETUP.md](KAFKA_SETUP.md) pour les instructions détaillées
+- **Pentaho** : Consultez [PENTAHO_SETUP.md](PENTAHO_SETUP.md) pour l'installation de Pentaho Data Integration
+- **WSO2** : Consultez [WSO2_SETUP.md](WSO2_SETUP.md) pour l'installation de WSO2 Enterprise Integrator
 
 ## Endpoints API REST
 

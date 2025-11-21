@@ -256,7 +256,11 @@ Le dossier `integration/` contient :
 ├── README.md              # Documentation principale
 ├── ARCHITECTURE.md        # Documentation de l'architecture
 ├── KAFKA_SETUP.md         # Guide d'installation Kafka
-└── prometheus_guide.md     # Guide Prometheus
+├── PENTAHO_SETUP.md       # Guide d'installation Pentaho
+├── WSO2_SETUP.md          # Guide d'installation WSO2
+├── PROMETHEUS_INSTALL.md  # Guide d'installation et utilisation Prometheus
+└── integration/
+    └── README.md          # Documentation du module d'intégration
 ```
 
 ## Tests

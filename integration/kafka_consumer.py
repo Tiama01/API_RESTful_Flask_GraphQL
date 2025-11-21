@@ -9,7 +9,7 @@ import os
 import time
 
 # Configuration
-KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'http://localhost:9092')
 KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'articles-sync')
 REST_API_URL = os.getenv('REST_API_URL', 'http://localhost:5000')
 GROUP_ID = 'articles-sync-consumer'
@@ -61,10 +61,11 @@ def sync_article_to_rest_api(article_data: dict):
                 timeout=5
             )
             if response.status_code == 201:
-                print(f"[OK] Nouvel article cree avec succes")
+                if response.status_code == 201:
+                    print(f"[OK] Nouvel article cree avec succes")
                 else:
                     print(f"[ERROR] Erreur lors de la creation de l'article: {response.status_code}")
-    
+
     except requests.exceptions.RequestException as e:
         print(f"[ERROR] Erreur lors de la synchronisation: {str(e)}")
 

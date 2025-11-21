@@ -152,10 +152,74 @@ export PATH=$PATH:$PROMETHEUS_HOME
 - Utiliser `sudo` pour les opérations de déplacement
 - Ou installer dans un dossier utilisateur : `~/prometheus`
 
+### Erreur macOS : "cannot be opened because the developer cannot be verified"
+
+Cette erreur survient car macOS bloque l'exécution de binaires non signés.
+
+**Solution 1 : Retirer le flag de quarantaine (Recommandé)**
+```bash
+sudo xattr -rd com.apple.quarantine /usr/local/prometheus/prometheus
+sudo xattr -rd com.apple.quarantine /usr/local/prometheus/promtool
+xattr -l /usr/local/prometheus/prometheus  # Vérifier
+```
+
+**Solution 2 : Autoriser via Paramètres Système**
+1. Essayer d'exécuter `prometheus --version`
+2. Aller dans **Paramètres Système** > **Confidentialité et sécurité**
+3. Cliquer sur **Ouvrir quand même** à côté du message concernant Prometheus
+
+**Solution 3 : Vérifier les permissions**
+```bash
+sudo chmod +x /usr/local/prometheus/prometheus
+sudo chmod +x /usr/local/prometheus/promtool
+```
+
+## Utilisation de Prometheus
+
+### Métriques exposées par Flask
+
+L'API REST Flask expose automatiquement les métriques suivantes via `prometheus-flask-exporter` :
+
+- **`flask_http_request_total`** : Nombre total de requêtes HTTP
+- **`flask_http_request_duration_seconds`** : Temps de réponse par endpoint
+- **`flask_http_request_exceptions_total`** : Erreurs (4xx, 5xx)
+
+Accès direct aux métriques : `http://localhost:5000/metrics`
+
+### Requêtes PromQL utiles
+
+Une fois Prometheus démarré, vous pouvez utiliser ces requêtes dans l'interface web (http://localhost:9090) :
+
+**Nombre total de requêtes :**
+```promql
+sum(flask_http_request_total)
+```
+
+**Taux de requêtes par seconde :**
+```promql
+rate(flask_http_request_total[5m])
+```
+
+**Temps de réponse moyen :**
+```promql
+rate(flask_http_request_duration_seconds_sum[5m]) / rate(flask_http_request_duration_seconds_count[5m])
+```
+
+**Taux d'erreurs 4xx :**
+```promql
+rate(flask_http_request_total{status=~"4.."}[5m])
+```
+
+**Taux d'erreurs 5xx :**
+```promql
+rate(flask_http_request_total{status=~"5.."}[5m])
+```
+
 ## Notes importantes
 
 - Prometheus est optionnel pour le projet
 - Les métriques Flask sont toujours disponibles sur `http://localhost:5000/metrics`
 - Vous pouvez visualiser les métriques directement via curl sans Prometheus
 - Pour la production, utiliser une installation complète de Prometheus avec stockage persistant
+- Consulter la documentation Prometheus pour plus de requêtes PromQL : https://prometheus.io/docs/prometheus/latest/querying/basics/
 

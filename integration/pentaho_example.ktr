@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Transformation Pentaho pour synchroniser les articles
+  Récupère les données depuis la base A et les envoie vers l'API REST Flask
+-->
+<transformation>
+  <info>
+    <name>Sync Articles to REST API</name>
+    <description>Synchronise les articles depuis la base de données source vers l'API REST Flask</description>
+  </info>
+
+  <!-- Étape 1: Lecture depuis la base de données source (Base A) -->
+  <step>
+    <name>Table Input - Source DB</name>
+    <type>TableInput</type>
+    <description>Lit les articles depuis la base de données source</description>
+    <sql>
+      SELECT id, title, content 
+      FROM articles 
+      WHERE updated_at > ?
+    </sql>
+    <connection>source_database</connection>
+  </step>
+
+  <!-- Étape 2: Transformation des données -->
+  <step>
+    <name>Transform Data</name>
+    <type>ScriptValueMod</type>
+    <description>Transforme les données au format JSON pour l'API REST</description>
+    <script>
+      // Convertit les données en format JSON
+      json_data = "{ \"title\": \"" + title + "\", \"content\": \"" + content + "\" }";
+    </script>
+  </step>
+
+  <!-- Étape 3: Appel HTTP vers l'API REST Flask -->
+  <step>
+    <name>REST Client</name>
+    <type>RestClient</type>
+    <description>Appelle l'API REST Flask pour créer/mettre à jour les articles</description>
+    <url>http://localhost:5000/articles</url>
+    <method>POST</method>
+    <body>${json_data}</body>
+    <headers>
+      Content-Type: application/json
+    </headers>
+  </step>
+
+  <!-- Étape 4: Écriture dans la base de destination (Base B) -->
+  <step>
+    <name>Table Output - Destination DB</name>
+    <type>TableOutput</type>
+    <description>Écrit les articles synchronisés dans la base de destination</description>
+    <connection>destination_database</connection>
+    <table>articles_synced</table>
+    <commit>1000</commit>
+  </step>
+
+  <!-- Connexions entre les étapes -->
+  <hops>
+    <hop from="Table Input - Source DB" to="Transform Data"/>
+    <hop from="Transform Data" to="REST Client"/>
+    <hop from="REST Client" to="Table Output - Destination DB"/>
+  </hops>
+
+  <!-- Configuration des connexions -->
+  <connections>
+    <connection name="source_database">
+      <type>MySQL</type>
+      <host>localhost</host>
+      <port>3306</port>
+      <database>source_db</database>
+      <username>user</username>
+      <password>password</password>
+    </connection>
+    
+    <connection name="destination_database">
+      <type>PostgreSQL</type>
+      <host>localhost</host>
+      <port>5432</port>
+      <database>destination_db</database>
+      <username>user</username>
+      <password>password</password>
+    </connection>
+  </connections>
+</transformation>
+

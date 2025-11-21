@@ -1,0 +1,57 @@
+# Configuration Prometheus pour le monitoring de l'API REST Flask
+# Ce fichier configure Prometheus pour scraper les métriques depuis l'API Flask
+
+global:
+  # Intervalle de scraping par défaut
+  scrape_interval: 15s
+  
+  # Intervalle d'évaluation des règles
+  evaluation_interval: 15s
+  
+  # Timeout par défaut pour les scrapes
+  scrape_timeout: 10s
+
+# Configuration des alertes (optionnel)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - localhost:9093
+
+# Règles d'alerte (optionnel)
+# rule_files:
+#   - "alert_rules.yml"
+
+# Configuration des jobs de scraping
+scrape_configs:
+  # Job pour l'API REST Flask
+  - job_name: 'flask-rest-api'
+    # Métriques exposées sur /metrics
+    metrics_path: '/metrics'
+    
+    # Schéma (http ou https)
+    scheme: 'http'
+    
+    # Cibles à scraper
+    static_configs:
+      - targets: ['localhost:5000']
+        labels:
+          service: 'flask-rest-api'
+          environment: 'development'
+    
+    # Intervalle de scraping pour ce job spécifique
+    scrape_interval: 10s
+    
+    # Timeout pour ce job
+    scrape_timeout: 5s
+
+  # Job optionnel pour le serveur GraphQL (si vous ajoutez des métriques)
+  # - job_name: 'graphql-server'
+  #   metrics_path: '/metrics'
+  #   scheme: 'http'
+  #   static_configs:
+  #     - targets: ['localhost:8000']
+  #       labels:
+  #         service: 'graphql-server'
+  #         environment: 'development'
+

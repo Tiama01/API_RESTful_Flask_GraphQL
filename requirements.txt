@@ -1,0 +1,18 @@
+# API RESTful Flask
+Flask==3.0.0
+Flask-CORS==4.0.0
+prometheus-flask-exporter==0.22.0
+
+# GraphQL
+ariadne==0.20.0
+requests==2.31.0
+
+# Base de données
+SQLAlchemy>=2.0.25
+
+# Kafka (optionnel pour l'intégration)
+kafka-python==2.0.2
+
+# Utilitaires
+python-dotenv==1.0.0
+

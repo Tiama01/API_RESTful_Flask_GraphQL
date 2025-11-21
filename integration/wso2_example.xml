@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Configuration WSO2 Enterprise Integrator (EI)
+  API Proxy pour synchroniser les articles entre deux bases de données
+  via l'API REST Flask
+-->
+<api xmlns="http://ws.apache.org/ns/synapse" name="ArticlesSyncAPI" context="/articles-sync">
+  <resource methods="GET POST PUT DELETE">
+    <description>API Proxy pour la synchronisation des articles</description>
+    
+    <!-- In Sequence: Traitement des requêtes entrantes -->
+    <inSequence>
+      <!-- Log de la requête -->
+      <log level="full">
+        <property name="MESSAGE" value="Requête reçue pour synchronisation"/>
+      </log>
+      
+      <!-- Récupération des données depuis la base source (Base A) -->
+      <dbreport>
+        <connection>
+          <pool>
+            <dsName>SourceDB</dsName>
+            <driverClassName>com.mysql.jdbc.Driver</driverClassName>
+            <url>jdbc:mysql://localhost:3306/source_db</url>
+            <user>user</user>
+            <password>password</password>
+          </pool>
+        </connection>
+        <statement>
+          <sql>
+            <![CDATA[
+              SELECT id, title, content 
+              FROM articles 
+              WHERE updated_at > ?
+            ]]>
+          </sql>
+          <parameter expression="get-property('lastSyncTime')" type="TIMESTAMP"/>
+        </statement>
+      </dbreport>
+      
+      <!-- Transformation des données au format JSON -->
+      <payloadFactory media-type="json">
+        <format>
+          {
+            "title": "$1",
+            "content": "$2"
+          }
+        </format>
+        <args>
+          <arg expression="//title/text()"/>
+          <arg expression="//content/text()"/>
+        </args>
+      </payloadFactory>
+      
+      <!-- Appel vers l'API REST Flask -->
+      <call>
+        <endpoint>
+          <http method="post" uri-template="http://localhost:5000/articles">
+            <timeout>
+              <duration>30000</duration>
+              <responseAction>fault</responseAction>
+            </timeout>
+          </http>
+        </endpoint>
+      </call>
+      
+      <!-- Écriture dans la base de destination (Base B) -->
+      <dbreport>
+        <connection>
+          <pool>
+            <dsName>DestinationDB</dsName>
+            <driverClassName>org.postgresql.Driver</driverClassName>
+            <url>jdbc:postgresql://localhost:5432/destination_db</url>
+            <user>user</user>
+            <password>password</password>
+          </pool>
+        </connection>
+        <statement>
+          <sql>
+            <![CDATA[
+              INSERT INTO articles_synced (id, title, content, synced_at)
+              VALUES (?, ?, ?, NOW())
+              ON CONFLICT (id) DO UPDATE
+              SET title = EXCLUDED.title,
+                  content = EXCLUDED.content,
+                  synced_at = NOW()
+            ]]>
+          </sql>
+          <parameter expression="//id/text()" type="INTEGER"/>
+          <parameter expression="//title/text()" type="VARCHAR"/>
+          <parameter expression="//content/text()" type="VARCHAR"/>
+        </statement>
+      </dbreport>
+      
+      <!-- Réponse de succès -->
+      <respond>
+        <payloadFactory media-type="json">
+          <format>
+            {
+              "success": true,
+              "message": "Article synchronisé avec succès"
+            }
+          </format>
+        </payloadFactory>
+      </respond>
+    </inSequence>
+    
+    <!-- Out Sequence: Traitement des réponses sortantes -->
+    <outSequence>
+      <send/>
+    </outSequence>
+    
+    <!-- Fault Sequence: Gestion des erreurs -->
+    <faultSequence>
+      <log level="error">
+        <property name="ERROR_MESSAGE" expression="get-property('ERROR_MESSAGE')"/>
+      </log>
+      <payloadFactory media-type="json">
+        <format>
+          {
+            "success": false,
+            "error": "$1"
+          }
+        </format>
+        <args>
+          <arg expression="get-property('ERROR_MESSAGE')"/>
+        </args>
+      </payloadFactory>
+      <respond/>
+    </faultSequence>
+  </resource>
+</api>

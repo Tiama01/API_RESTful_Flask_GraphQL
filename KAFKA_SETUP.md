@@ -49,7 +49,7 @@ export KAFKA_HOME=/chemin/vers/kafka
 export PATH=$PATH:$KAFKA_HOME/bin
 ```
 
-## ⚙ Configuration
+## Configuration
 
 ### 1. Configuration Zookeeper
 
@@ -150,7 +150,7 @@ kafka-console-consumer.sh \
   --from-beginning
 ```
 
-## 📤 Envoyer un message de test
+## Envoyer un message de test
 
 ### Via le script Python
 
@@ -274,7 +274,7 @@ export REST_API_URL=http://localhost:5000
 
 Ces valeurs sont utilisées par défaut si non définies.
 
-## 🐳 Alternative : Docker (optionnel)
+## Alternative : Docker (optionnel)
 
 Si vous préférez utiliser Docker pour Kafka :
 

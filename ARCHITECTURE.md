@@ -1,6 +1,6 @@
 # Architecture du Projet
 
-## 📐 Vue d'ensemble
+## Vue d'ensemble
 
 Ce projet implémente une architecture complète avec plusieurs composants interconnectés :
 

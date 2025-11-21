@@ -241,8 +241,36 @@ find_kafka() {
     return 1
 }
 
+# Fonction pour vérifier si Kafka utilise KRaft (pas besoin de Zookeeper)
+is_kafka_kraft() {
+    local kafka_configs=(
+        "/usr/local/etc/kafka/server.properties"
+        "/opt/homebrew/etc/kafka/server.properties"
+        "$HOME/kafka/config/server.properties"
+        "/usr/local/kafka/config/server.properties"
+        "/opt/kafka/config/server.properties"
+    )
+    
+    for config in "${kafka_configs[@]}"; do
+        if [ -f "$config" ]; then
+            # Vérifier si process.roles est défini (mode KRaft)
+            if grep -q "process.roles" "$config" 2>/dev/null; then
+                return 0  # Mode KRaft
+            fi
+        fi
+    done
+    
+    return 1  # Mode Zookeeper
+}
+
 # Fonction pour démarrer Zookeeper
 start_zookeeper() {
+    # Vérifier si Kafka utilise KRaft (pas besoin de Zookeeper)
+    if is_kafka_kraft; then
+        log_info "Kafka est en mode KRaft, Zookeeper n'est pas necessaire"
+        return 0
+    fi
+    
     local kafka_bin=$(find_kafka)
     
     if [ -z "$kafka_bin" ]; then
@@ -258,6 +286,7 @@ start_zookeeper() {
     # Chercher le fichier de configuration Zookeeper
     local zookeeper_configs=(
         "$kafka_bin/../config/zookeeper.properties"
+        "$kafka_bin/../etc/kafka/zookeeper.properties"  # Homebrew libexec
         "/usr/local/etc/kafka/zookeeper.properties"  # Homebrew
         "/opt/homebrew/etc/kafka/zookeeper.properties"  # Homebrew Apple Silicon
         "$HOME/kafka/config/zookeeper.properties"
@@ -275,6 +304,7 @@ start_zookeeper() {
     
     if [ -z "$zookeeper_config" ]; then
         log_warning "Fichier de configuration Zookeeper non trouvé"
+        log_info "Si Kafka est en mode KRaft (version 4.x+), Zookeeper n'est pas necessaire"
         return 1
     fi
     
@@ -376,11 +406,20 @@ case $SERVICE in
     ;;
     
   kafka)
-    start_zookeeper
-    sleep 2
+    # Démarrer Zookeeper seulement si nécessaire (pas en mode KRaft)
+    if ! is_kafka_kraft; then
+        start_zookeeper
+        sleep 2
+    else
+        log_info "Kafka en mode KRaft, Zookeeper non necessaire"
+    fi
     start_kafka
     log_info "Appuyez sur Ctrl+C pour arrêter"
-    wait $ZOOKEEPER_PID $KAFKA_PID
+    if [ -n "$ZOOKEEPER_PID" ]; then
+        wait $ZOOKEEPER_PID $KAFKA_PID
+    else
+        wait $KAFKA_PID
+    fi
     ;;
     
   consumer)
@@ -394,10 +433,21 @@ case $SERVICE in
     echo ""
     
     # Démarrer Zookeeper et Kafka en premier (si disponibles)
+    # Note: Kafka 4.x+ utilise KRaft et n'a pas besoin de Zookeeper
     if start_zookeeper; then
-        sleep 2
+        # Si Zookeeper est nécessaire (Kafka < 4.0), attendre avant de démarrer Kafka
+        if ! is_kafka_kraft; then
+            sleep 2
+        fi
         start_kafka
         sleep 2
+    else
+        # Si Zookeeper n'est pas nécessaire (KRaft), démarrer Kafka directement
+        if is_kafka_kraft; then
+            log_info "Kafka en mode KRaft, demarrage direct sans Zookeeper"
+            start_kafka
+            sleep 2
+        fi
     fi
     
     # Démarrer l'API REST

@@ -30,7 +30,15 @@ Si vous rencontrez des erreurs lors de l'installation via Homebrew (notamment su
    # Créer un dossier pour Prometheus
    sudo mkdir -p /usr/local/prometheus
    sudo mv prometheus promtool /usr/local/prometheus/
-   sudo mv consoles console_libraries /usr/local/prometheus/
+   
+   # Déplacer les dossiers consoles et console_libraries s'ils existent
+   # (Certaines versions ne les incluent pas)
+   if [ -d "consoles" ]; then
+       sudo mv consoles /usr/local/prometheus/
+   fi
+   if [ -d "console_libraries" ]; then
+       sudo mv console_libraries /usr/local/prometheus/
+   fi
    ```
 
 4. **Créer un lien symbolique**
@@ -42,6 +50,8 @@ Si vous rencontrez des erreurs lors de l'installation via Homebrew (notamment su
    ```bash
    prometheus --version
    ```
+
+**Note :** Si les dossiers `consoles` et `console_libraries` n'existent pas dans votre version, ce n'est pas un problème. Ils sont optionnels et ne sont nécessaires que pour certaines fonctionnalités avancées.
 
 ## Option 2 : Installation via Docker
 

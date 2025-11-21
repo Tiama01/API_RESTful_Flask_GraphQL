@@ -14,6 +14,38 @@ brew install kafka
 
 # Kafka sera installé dans /opt/homebrew/opt/kafka (Apple Silicon)
 # ou /usr/local/opt/kafka (Intel)
+
+# Les scripts se trouvent dans libexec/bin
+# Exemple: /usr/local/opt/kafka/libexec/bin/kafka-server-start.sh
+```
+
+**Configuration des variables d'environnement (recommandé) :**
+
+```bash
+# Pour zsh (macOS par défaut)
+echo 'export KAFKA_HOME=$(brew --prefix kafka)' >> ~/.zshrc
+echo 'export PATH=$PATH:$KAFKA_HOME/libexec/bin' >> ~/.zshrc
+source ~/.zshrc
+
+# Pour bash
+echo 'export KAFKA_HOME=$(brew --prefix kafka)' >> ~/.bash_profile
+echo 'export PATH=$PATH:$KAFKA_HOME/libexec/bin' >> ~/.bash_profile
+source ~/.bash_profile
+
+# Vérifier l'installation
+kafka-server-start.sh --version
+```
+
+**Démarrage de Kafka avec Homebrew :**
+
+```bash
+# Option 1 : Service en arrière-plan (recommandé)
+brew services start kafka
+
+# Option 2 : Démarrage manuel
+/usr/local/opt/kafka/libexec/bin/kafka-server-start.sh /usr/local/etc/kafka/server.properties
+
+# Note: Zookeeper est automatiquement démarré avec Kafka via Homebrew
 ```
 
 ### Linux (Ubuntu/Debian)
@@ -44,6 +76,11 @@ cd kafka_2.13-3.6.0
 
 3. **Définir la variable d'environnement** (recommandé) :
 ```bash
+# Pour Homebrew (macOS)
+export KAFKA_HOME=$(brew --prefix kafka)
+export PATH=$PATH:$KAFKA_HOME/libexec/bin
+
+# Pour installation manuelle (Linux/macOS)
 # Ajouter à ~/.bashrc ou ~/.zshrc
 export KAFKA_HOME=/chemin/vers/kafka
 export PATH=$PATH:$KAFKA_HOME/bin

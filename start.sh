@@ -198,8 +198,10 @@ find_kafka() {
         "/opt/kafka/bin"
         "$KAFKA_HOME/bin"
         "./kafka/bin"
-        "/opt/homebrew/opt/kafka/bin"  # Homebrew sur Apple Silicon
-        "/usr/local/opt/kafka/bin"      # Homebrew sur Intel
+        "/opt/homebrew/opt/kafka/libexec/bin"  # Homebrew sur Apple Silicon (libexec)
+        "/usr/local/opt/kafka/libexec/bin"      # Homebrew sur Intel (libexec)
+        "/opt/homebrew/opt/kafka/bin"            # Homebrew sur Apple Silicon (bin)
+        "/usr/local/opt/kafka/bin"                # Homebrew sur Intel (bin)
     )
     
     for path in "${kafka_paths[@]}"; do
@@ -208,6 +210,18 @@ find_kafka() {
             return 0
         fi
     done
+    
+    # Si Homebrew est installé, chercher via brew --prefix
+    if command -v brew &> /dev/null; then
+        local brew_kafka=$(brew --prefix kafka 2>/dev/null)
+        if [ -n "$brew_kafka" ]; then
+            local brew_bin="$brew_kafka/libexec/bin"
+            if [ -f "$brew_bin/kafka-server-start.sh" ]; then
+                echo "$brew_bin"
+                return 0
+            fi
+        fi
+    fi
     
     # Chercher dans le PATH
     if command -v kafka-server-start.sh &> /dev/null; then
@@ -244,6 +258,8 @@ start_zookeeper() {
     # Chercher le fichier de configuration Zookeeper
     local zookeeper_configs=(
         "$kafka_bin/../config/zookeeper.properties"
+        "/usr/local/etc/kafka/zookeeper.properties"  # Homebrew
+        "/opt/homebrew/etc/kafka/zookeeper.properties"  # Homebrew Apple Silicon
         "$HOME/kafka/config/zookeeper.properties"
         "/usr/local/kafka/config/zookeeper.properties"
         "/opt/kafka/config/zookeeper.properties"
@@ -285,6 +301,8 @@ start_kafka() {
     # Chercher le fichier de configuration Kafka
     local kafka_configs=(
         "$kafka_bin/../config/server.properties"
+        "/usr/local/etc/kafka/server.properties"  # Homebrew
+        "/opt/homebrew/etc/kafka/server.properties"  # Homebrew Apple Silicon
         "$HOME/kafka/config/server.properties"
         "/usr/local/kafka/config/server.properties"
         "/opt/kafka/config/server.properties"

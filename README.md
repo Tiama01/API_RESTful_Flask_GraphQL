@@ -2,11 +2,15 @@
 
 ## Description
 
+**Sujet du projet :** Création d'une API RESTful avec Flask et Consommation avec GraphQL
+
+**Objectif :** Apprendre à créer une API RESTful avec Flask et à consommer cette API avec GraphQL. Via Pentaho Data Integration/WSO2/Kafka pour se connecter/synchroniser entre deux bases de données.
+
 Projet complet incluant :
 - API RESTful Flask pour la gestion d'articles de blog (CRUD)
 - Serveur GraphQL consommant l'API REST
-- Module d'intégration (Kafka/Pentaho/WSO2) pour synchronisation
-- Monitoring avec Prometheus
+- Module d'intégration (Kafka/Pentaho/WSO2) pour synchronisation entre bases de données
+- Monitoring avec Prometheus pour surveiller les performances du service
 
 ## Installation
 
